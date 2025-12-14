@@ -1,0 +1,193 @@
+﻿@model BotyProjekt.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var mainImage = Model.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? "obrazky/placeholder.png";
+    var otherImages = Model.Images.Where(i => !i.IsPrimary).Take(3).ToList();
+
+    var minPrice = Model.Variants.Any() ? Model.Variants.Min(v => v.Price) : Model.BasePrice;
+
+    var uniqueColors = Model.Variants.Select(v => v.Color).DistinctBy(c => c.Id).ToList();
+    var uniqueSizes = Model.Variants.Select(v => v.Size).DistinctBy(s => s.Id).OrderBy(s => s.Name).ToList();
+
+    var relatedProducts = ViewBag.RelatedProducts as List<BotyProjekt.Models.Product>;
+}
+
+<div class="container breadcrumbs">
+    <a asp-controller="Home" asp-action="Index">Domů</a> <span>&gt;</span>
+    <a href="#">@Model.Category?.Name</a> <span>&gt;</span>
+    <span>@Model.Name</span>
+</div>
+
+<section class="container product-detail-wrapper">
+    <div class="product-gallery">
+        <div class="main-image">
+            <img src="@Url.Content("~/" + mainImage)" alt="@Model.Name">
+        </div>
+        <div class="thumbnails">
+            <img src="@Url.Content("~/" + mainImage)" class="thumb active" alt="Main">
+
+            @foreach (var img in otherImages)
+            {
+                <img src="@Url.Content("~/" + img.ImageUrl)" class="thumb" alt="Thumb">
+            }
+        </div>
+    </div>
+
+    <div class="product-info-panel">
+        <div class="product-header">
+            <h1>@Model.Name</h1>
+            <img src="~/obrazky/logo.webp" class="brand-logo" alt="Brand Logo">
+        </div>
+
+        <p class="short-desc">
+            @Model.Description
+        </p>
+
+        <div class="options-row">
+            <div class="option-group">
+                <h4>Barva</h4>
+                <div class="color-selector">
+                    @foreach (var color in uniqueColors)
+                    {
+                        <div class="color-dot"
+                             style="background-color: @color.HexCode;"
+                             title="@color.Name"></div>
+                    }
+                </div>
+            </div>
+
+            <div class="option-group">
+                <h4>Velikost</h4>
+                <div class="size-selector">
+                    @foreach (var size in uniqueSizes)
+                    {
+                        <div class="size-box">@size.Name</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="stock-status">
+            @if (Model.Variants.Sum(v => v.StockQuantity) > 0)
+            {
+                <span style="color: green;">Skladem</span>
+            }
+            else
+            {
+                <span style="color: red;">Vyprodáno</span>
+            }
+        </div>
+
+        <div class="price-block">
+            <div class="price-wrapper">
+                @if (Model.Discount > 0)
+                {
+                    <span class="detail-old-price">@((minPrice * (1 + Model.Discount / 100m)).ToString("C0"))</span>
+                }
+                <span class="detail-price">@minPrice.ToString("C0")</span>
+            </div>
+
+            <button class="add-to-cart-btn">
+                <img src="~/obrazky/cart.png" style="filter: brightness(0) invert(1);" width="20" alt=""> Přidat do košíku
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="container details-grid">
+    <div class="details-text">
+        <h2>Informace o produktu</h2>
+        <p>@Model.Description</p>
+    </div>
+
+    <div class="details-table">
+        <table class="params-table">
+            <thead>
+                <tr>
+                    <th colspan="2">Parametry produktu</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Kategorie</td>
+                    <td>@Model.Category?.Name</td>
+                </tr>
+                <tr>
+                    <td>Dostupné barvy</td>
+                    <td>@string.Join(", ", uniqueColors.Select(c => c.Name))</td>
+                </tr>
+                <tr>
+                    <td>Dostupné velikosti</td>
+                    <td>@string.Join(", ", uniqueSizes.Select(s => s.Name))</td>
+                </tr>
+                <tr>
+                    <td>Kód produktu</td>
+                    <td>@Model.Id.ToString("D5")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="container" style="text-align: center; margin: 40px auto;">
+    <img src="~/obrazky/Group 295.svg" alt="icon">
+</div>
+
+<section class="products container">
+    <div class="section-title">
+        <h2><span class="red-text">Mohlo by se</span> Vám líbit</h2>
+    </div>
+
+    <div class="product-grid">
+        @if (relatedProducts != null)
+        {
+            @foreach (var item in relatedProducts)
+            {
+                var itemPrice = item.Variants.Any() ? item.Variants.Min(v => v.Price) : item.BasePrice;
+                var itemImage = item.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? "obrazky/placeholder.png";
+
+                <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="product-card">
+                    <div class="img-wrapper"><img src="@Url.Content("~/" + itemImage)" alt="@item.Name"></div>
+                    <h3>@item.Name</h3>
+                    <div class="price-row">
+                        <span class="price">@itemPrice.ToString("C0")</span>
+                        <span class="cart-btn"><img src="~/obrazky/cart.png" alt="icon" height="20px"></span>
+                    </div>
+                </a>
+            }
+        }
+    </div>
+</section>
+
+<div class="container" style="text-align: center; margin: 40px auto;">
+    <img src="~/obrazky/Group 295.svg" alt="icon">
+</div>
+
+<section class="services container">
+    <a href="#" class="service-box">
+        <div class="icon-circle"><img alt="icon" src="~/obrazky/Group 195.svg" height="35px" width="35px"></div>
+        <span>VŠE MÁME SKLADEM</span>
+    </a>
+    <a href="#" class="service-box">
+        <div class="icon-circle"><img alt="icon" src="~/obrazky/Group 196.svg" height="35px" width="35px"></div>
+        <span>DOPRAVA ZDARMA</span>
+    </a>
+    <a href="#" class="service-box">
+        <div class="icon-circle"><img alt="icon" src="~/obrazky/Group 293.svg" height="35px" width="35px"></div>
+        <span>JAK MĚŘIT VELIKOSTI</span>
+    </a>
+</section>
+
+<section class="newsletter">
+    <div class="container newsletter-content">
+        <h2>Nezmeškejte nové a výhodné akce</h2>
+        <p>Zadejte svůj e-mail a obratem vám zašleme PDF s inspirací zdarma.</p>
+        <form action="#" method="post">
+            <img alt="icon" src="~/obrazky/loupe.svg" height="15px" width="15px">
+            <input type="email" name="email" placeholder="Zadejte váš e-mail..." required>
+            <button type="submit" class="btn-red">přihlásit</button>
+        </form>
+    </div>
+</section>

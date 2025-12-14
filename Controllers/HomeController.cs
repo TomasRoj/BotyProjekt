@@ -1,12 +1,14 @@
 using System.Diagnostics;
 using BotyProjekt.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BotyProjekt.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly MyContext myContext = new MyContext();
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -15,12 +17,13 @@ namespace BotyProjekt.Controllers
 
         public IActionResult Index()
         {
-            return View();
-        }
+            var products = myContext.Products
+                .Include(p => p.Images)
+                .Include(p => p.Variants)
+                .Take(8)
+                .ToList();
 
-        public IActionResult Privacy()
-        {
-            return View();
+            return View(products);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

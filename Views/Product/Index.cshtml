@@ -1,0 +1,152 @@
+﻿@model BotyProjekt.ViewModels.ListViewModel
+
+@{
+    ViewData["Title"] = "Nabídka produktů";
+}
+
+<style>
+</style>
+
+<form asp-controller="Product" asp-action="Index" method="get">
+
+    @if (Model.CurrentCategoryId.HasValue)
+    {
+        <input type="hidden" name="categoryId" value="@Model.CurrentCategoryId" />
+    }
+
+    <div class="container catalog-layout">
+
+        <aside class="sidebar">
+
+            <div class="filter-group category-tree">
+                <h4>Kategorie</h4>
+                <ul>
+                    @foreach (var cat in Model.Categories.Where(c => c.ParentId == null))
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", new { categoryId = cat.Id })"
+                               class="category-link @(Model.CurrentCategoryId == cat.Id ? "active" : "")">
+                                @cat.Name
+                            </a>
+                            @if (cat.SubCategories != null && cat.SubCategories.Any())
+                            {
+                                <ul>
+                                    @foreach (var sub in cat.SubCategories)
+                                    {
+                                        <li>
+                                            <a href="@Url.Action("Index", new { categoryId = sub.Id })"
+                                               class="category-link @(Model.CurrentCategoryId == sub.Id ? "active" : "")">
+                                                - @sub.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="filter-group">
+                <h4>Cena (Kč)</h4>
+                <div class="price-inputs">
+                    <input type="number" name="minPrice" placeholder="Od" value="@Model.MinPrice" />
+                    <span>-</span>
+                    <input type="number" name="maxPrice" placeholder="Do" value="@Model.MaxPrice" />
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h4>Barva</h4>
+                <ul class="checkbox-list">
+                    @foreach (var color in Model.Colors)
+                    {
+                        <li>
+                            <label>
+                                <input type="checkbox" name="selectedColorIds" value="@color.Id"
+                                       @(Model.SelectedColorIds.Contains(color.Id) ? "checked" : "") />
+                                @color.Name
+                            </label>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="filter-group">
+                <h4>Velikost</h4>
+                <ul class="checkbox-list">
+                    @foreach (var size in Model.Sizes)
+                    {
+                        <li>
+                            <label>
+                                <input type="checkbox" name="selectedSizeIds" value="@size.Id"
+                                       @(Model.SelectedSizeIds.Contains(size.Id) ? "checked" : "") />
+                                @size.Name
+                            </label>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <button type="submit" class="btn-red" style="width: 100%;">Filtrovat</button>
+            <a asp-action="Index" style="display:block; text-align:center; margin-top:10px; font-size:0.9em;">Zrušit filtry</a>
+
+        </aside>
+
+        <main class="main-content">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div>Nalezeno produktů: <strong>@Model.Products.Count</strong></div>
+
+                <div>
+                    <label>Řadit dle:</label>
+                    <select name="sortOrder" onchange="this.form.submit()">
+                        <!option value="" @(string.IsNullOrEmpty(Model.SortOrder) ? "selected" : "")>Doporučené</!option>
+                        <!option value="price_asc" @(Model.SortOrder == "price_asc" ? "selected" : "")>Nejlevnější</!option>
+                        <!option value="price_desc" @(Model.SortOrder == "price_desc" ? "selected" : "")>Nejdražší</!option>
+                        <!option value="name" @(Model.SortOrder == "name" ? "selected" : "")>Názvu (A-Z)</!option>
+                    </select>
+                </div>
+            </div>
+
+            @if (!Model.Products.Any())
+            {
+                <p>Pro zadaná kritéria jsme nenašli žádné produkty.</p>
+            }
+            else
+            {
+                <div class="product-grid">
+                    @foreach (var item in Model.Products)
+                    {
+                        var minPrice = item.Variants.Any() ? item.Variants.Min(v => v.Price) : item.BasePrice;
+                        var imgPath = item.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? "obrazky/placeholder.png";
+
+                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="product-card">
+                            <div class="img-wrapper">
+                                <img src="@Url.Content("~/" + imgPath)" alt="@item.Name">
+                            </div>
+                            <h3>@item.Name</h3>
+                            <div class="price-row">
+                                <span class="price">od @minPrice.ToString("C0")</span>
+                                <span class="cart-btn"><img src="~/obrazky/cart.png" alt="icon" height="20px"></span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="pagination">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <button type="submit" name="page" value="@i" class="@(i == Model.CurrentPage ? "active" : "")">
+                            @i
+                        </button>
+                    }
+                </div>
+            }
+
+        </main>
+    </div>
+</form>

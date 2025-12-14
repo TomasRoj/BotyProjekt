@@ -1,8 +1,108 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<BotyProjekt.Models.Product>
+
+@{
+    ViewData["Title"] = "Domovská stránka";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero-banner">
+    <div class="container relative-pos">
+        <div class="hero-text">
+            <span class="subtitle">NOVÁ DÍVČÍ KOLEKCE<br>ŠETRNÁ K DĚTSKÝM NOHÁM</span>
+            <h1>NEJEN DO MĚSTA,<br>ALE I DO PŘÍRODY</h1>
+            <a href="#" class="btn-red">zobrazit produkty</a>
+        </div>
+        <div class="slider-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+</section>
+
+<section class="categories container">
+    <a href="#" class="cat-box modra">
+        <div class="text">
+            <h2>KLUČIČÍ<br>BOTY</h2>
+        </div>
+    </a>
+    <a href="#" class="cat-box cervena">
+        <div class="text">
+            <h2>DÍVČÍ BOTY</h2>
+        </div>
+    </a>
+    <a href="#" class="cat-box seda">
+        <div class="text">
+            <h2>JAK SPRÁVNĚ<br>VYBRAT?</h2>
+        </div>
+    </a>
+</section>
+
+<section class="products container">
+    <div class="section-title">
+        <h2><span class="red-text">Nejnovější kousky</span> v naší nabídce</h2>
+        <img src="obrazky/Group 295.svg" alt="icon">
+    </div>
+
+    <div class="product-grid">
+        @foreach (var item in Model)
+        {
+            var imagePath = item.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? "obrazky/placeholder.png";
+
+            var price = item.Variants.Any()
+            ? item.Variants.Min(v => v.Price)
+            : item.BasePrice;
+
+            <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="product-card">
+                <div class="img-wrapper">
+                    <img src="@Url.Content("~/" + imagePath)" alt="@item.Name">
+                </div>
+                <h3>@item.Name</h3>
+                <div class="price-row">
+                    <span class="price">@price.ToString("C0")</span>
+
+                    @if (item.Discount > 0)
+                    {
+                        <span class="old-price">@((price * (1 + item.Discount / 100m)).ToString("C0"))</span>
+                    }
+
+                    <span class="cart-btn"><img src="~/obrazky/cart.png" alt="icon" height="20px" width="20px"> </span>
+                </div>
+            </a>
+        }
+    </div>
+
+    <div class="center-btn">
+        <a asp-controller="Product" asp-action="Index" class="btn-red big">zobrazit celou nabídku</a>
+    </div>
+
+    <div class="separator-bottom">
+        <img src="obrazky/Group 295.svg" alt="icon">
+    </div>
+</section>
+
+<section class="services container">
+    <a href="#" class="service-box">
+        <div class="icon-circle"><img alt="icon" src="obrazky/Group 195.svg" height="35px" width="35px"></i></div>
+        <span>VŠE MÁME SKLADEM</span>
+    </a>
+    <a href="#" class="service-box">
+        <div class="icon-circle"><img alt="icon" src="obrazky/Group 196.svg" height="35px" width="35px"></i></div>
+        <span>DOPRAVA ZDARMA</span>
+    </a>
+    <a href="#" class="service-box hover-demo">
+        <div class="icon-circle"><img alt="icon" src="obrazky/Group 293.svg" height="35px" width="35px"></i></div>
+        <span>JAK MĚŘIT VELIKOSTI</span>
+    </a>
+</section>
+
+<section class="newsletter">
+    <div class="container newsletter-content">
+        <h2>Nezmeškejte nové a výhodné akce</h2>
+        <p>Zadejte svůj e-mail a obratem vám zašleme PDF s inspirací zdarma.</p>
+        <form action="newsletter.php" method="post">
+            <img alt="icon" src="obrazky/loupe.svg" height="15px" width="15px">
+            <input type="email" name="email" placeholder="Zadejte svůj e-mail..." required>
+            <button type="submit" class="btn-red">přihlásit</button>
+        </form>
+    </div>
+</section>
