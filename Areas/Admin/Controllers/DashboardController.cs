@@ -11,7 +11,12 @@ namespace BotyProjekt.Admin.Controllers
     [Authorize]
     public class DashboardController : Controller
     {
-        private readonly MyContext _context = new MyContext();
+        private readonly MyContext _context;
+
+        public DashboardController(MyContext context)
+        {
+            _context = context;
+        }
 
         public async Task<IActionResult> Index(string section = "orders")
         {
@@ -20,7 +25,9 @@ namespace BotyProjekt.Admin.Controllers
                 ActiveSection = section,
                 Orders = await _context.Orders.OrderByDescending(o => o.OrderDate).ToListAsync(),
                 Products = await _context.Products.Include(p => p.Category).ToListAsync(),
-                Categories = await _context.Categories.ToListAsync()
+                Categories = await _context.Categories.ToListAsync(),
+                Colors = await _context.Colors.ToListAsync(),
+                Sizes = await _context.Sizes.OrderBy(s => s.Name).ToListAsync()
             };
 
             ViewBag.CategoriesList = new SelectList(model.Categories, "Id", "Name");

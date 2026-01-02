@@ -27,7 +27,7 @@
         .logout { margin-top: auto; background: #c0392b; color: white; text-align: center; }
 
         /* Obsah */
-        .content { flex: 1; padding: 30px; }
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
 
         /* Styly pro tabulky a formuláře */
         .card { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -38,14 +38,21 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { min-height: 80px; }
 
         .btn { padding: 8px 15px; border: none; cursor: pointer; text-decoration: none; color: white; border-radius: 3px; display: inline-block; font-size: 14px; }
         .btn-success { background: #28a745; }
         .btn-danger { background: #dc3545; }
+        .btn-primary { background: #007bff; }
 
         .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; }
         .alert-success { background: #d4edda; color: #155724; }
         .alert-error { background: #f8d7da; color: #721c24; }
+        .alert-warning { background: #fff3cd; color: #856404; }
+
+        .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        .detail-link { color: #007bff; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -56,19 +63,25 @@
         <a href="?section=orders" class="menu-link @(Model.ActiveSection == "orders" ? "active" : "")">Objednávky</a>
         <a href="?section=products" class="menu-link @(Model.ActiveSection == "products" ? "active" : "")">Produkty</a>
         <a href="?section=categories" class="menu-link @(Model.ActiveSection == "categories" ? "active" : "")">Kategorie</a>
+        <a href="?section=colors" class="menu-link @(Model.ActiveSection == "colors" ? "active" : "")">Barvy</a>
+        <a href="?section=sizes" class="menu-link @(Model.ActiveSection == "sizes" ? "active" : "")">Velikosti</a>
 
         <a href="/Account/Logout" class="menu-link logout">Odhlásit se</a>
     </div>
 
     <div class="content">
 
-        @if (ViewBag.Message != null)
+        @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success">@ViewBag.Message</div>
+            <div class="alert alert-success">@TempData["Success"]</div>
         }
-        @if (ViewBag.Error != null)
+        @if (TempData["Error"] != null)
         {
-            <div class="alert alert-error">@ViewBag.Error</div>
+            <div class="alert alert-error">@TempData["Error"]</div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning">@TempData["Warning"]</div>
         }
 
         @if (Model.ActiveSection == "orders")
@@ -77,16 +90,27 @@
             <div class="card">
                 <table>
                     <thead>
-                        <tr><th>ID</th><th>Datum</th><th>Zákazník</th><th>Cena</th></tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Zákazník</th>
+                            <th>E-mail</th>
+                            <th>Cena</th>
+                            <th>Akce</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach (var o in Model.Orders)
                         {
                             <tr>
                                 <td>@o.Id</td>
-                                <td>@o.OrderDate</td>
+                                <td>@o.OrderDate.ToString("dd.MM.yyyy HH:mm")</td>
                                 <td>@o.CustomerName</td>
-                                <td>@o.TotalPrice Kč</td> 
+                                <td>@o.CustomerEmail</td>
+                                <td>@o.TotalPrice.ToString("C0")</td>
+                                <td>
+                                    <a asp-area="Admin" asp-controller="Orders" asp-action="Detail" asp-route-id="@o.Id" class="btn btn-primary">Detaily</a>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -104,23 +128,31 @@
 
             <div class="card" style="background: #eef;">
                 <h3>Nový produkt</h3>
-                <form asp-area="Admin" asp-controller="Products" asp-action="Create" method="post">
+                <form method="post" action="/Admin/Products/Create">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
                         <label>Název</label>
-                        <input name="Name" required />
+                        <input name="name" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Popis</label>
+                        <textarea name="description"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Cena</label>
-                        <input name="BasePrice" type="number" required />
+                        <input name="basePrice" type="number" step="0.01" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Sleva (%)</label>
+                        <input name="discount" type="number" value="0" />
                     </div>
                     <div class="form-group">
                         <label>Kategorie</label>
-                        <select name="CategoryId" asp-items="ViewBag.CategoriesList">
+                        <select name="categoryId" required>
                             @foreach (var c in Model.Categories)
                             {
-                                <option value="@c.Id"> @(c.Name)</option>
+                                <option value="@c.Id">@c.Name</option>
                             }
-                            <option value="">-- Vyberte kategorii --</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-success">Uložit produkt</button>
@@ -130,7 +162,13 @@
             <div class="card">
                 <table>
                     <thead>
-                        <tr><th>Název</th><th>Kategorie</th><th>Cena</th><th>Akce</th></tr>
+                        <tr>
+                            <th>Název</th>
+                            <th>Kategorie</th>
+                            <th>Cena</th>
+                            <th>Sleva</th>
+                            <th>Akce</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach (var p in Model.Products)
@@ -138,9 +176,11 @@
                             <tr>
                                 <td>@p.Name</td>
                                 <td>@(p.Category?.Name ?? "-")</td>
-                                <td>@p.BasePrice</td>
+                                <td>@p.BasePrice.ToString("C0")</td>
+                                <td>@p.Discount %</td>
                                 <td>
-                                    <a href="@Url.Action("Delete", "Products", new { area = "Admin", id = p.Id })" class="btn btn-danger" onclick="return confirm('Opravdu?')">Smazat</a>
+                                    <a asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@p.Id" class="btn btn-primary">Editovat</a>
+                                    <a asp-area="Admin" asp-controller="Products" asp-action="Delete" asp-route-id="@p.Id" class="btn btn-danger" onclick="return confirm('Opravdu?')">Smazat</a>
                                 </td>
                             </tr>
                         }
@@ -155,7 +195,8 @@
 
             <div class="card" style="background: #eef; max-width: 500px;">
                 <h3>Nová kategorie</h3>
-                <form asp-area="Admin" asp-controller="Categories" asp-action="Create" method="post">
+                <form method="post" action="/Admin/Categories/Create">
+                    @Html.AntiForgeryToken()
                     <div class="form-group">
                         <label>Název kategorie</label>
                         <input name="Name" required />
@@ -174,7 +215,93 @@
                                 <td>@c.Id</td>
                                 <td>@c.Name</td>
                                 <td>
-                                    <a href="@Url.Action("Delete", "Categories", new { area = "Admin", id = c.Id })" class="btn btn-danger" onclick="return confirm('Smazat?')">Smazat</a>
+                                    <form method="post" action="/Admin/Categories/Delete/@c.Id" style="display: inline;" onsubmit="return confirm('Smazat?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger">Smazat</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.ActiveSection == "colors")
+        {
+            <h1>Správa Barev</h1>
+
+            <div class="card" style="background: #eef; max-width: 500px;">
+                <h3>Nová barva</h3>
+                <form method="post" action="/Admin/Colors/Create">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label>Název barvy</label>
+                        <input name="Name" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Hex kód barvy (např. #FF0000)</label>
+                        <input name="HexCode" type="color" required />
+                    </div>
+                    <button type="submit" class="btn btn-success">Přidat</button>
+                </form>
+            </div>
+
+            <div class="card" style="max-width: 600px;">
+                <table>
+                    <thead><tr><th>ID</th><th>Název</th><th>Barva</th><th>Akce</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in Model.Colors)
+                        {
+                            <tr>
+                                <td>@c.Id</td>
+                                <td>@c.Name</td>
+                                <td>
+                                    <div style="width: 30px; height: 30px; background-color: @c.HexCode; border: 1px solid #ccc; border-radius: 4px;"></div>
+                                </td>
+                                <td>
+                                    <form method="post" action="/Admin/Colors/Delete/@c.Id" style="display: inline;" onsubmit="return confirm('Smazat?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger">Smazat</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.ActiveSection == "sizes")
+        {
+            <h1>Správa Velikostí</h1>
+
+            <div class="card" style="background: #eef; max-width: 500px;">
+                <h3>Nová velikost</h3>
+                <form method="post" action="/Admin/Sizes/Create">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label>Název velikosti (např. 40, 41, 42...)</label>
+                        <input name="Name" required />
+                    </div>
+                    <button type="submit" class="btn btn-success">Přidat</button>
+                </form>
+            </div>
+
+            <div class="card" style="max-width: 600px;">
+                <table>
+                    <thead><tr><th>ID</th><th>Název</th><th>Akce</th></tr></thead>
+                    <tbody>
+                        @foreach (var s in Model.Sizes)
+                        {
+                            <tr>
+                                <td>@s.Id</td>
+                                <td>@s.Name</td>
+                                <td>
+                                    <form method="post" action="/Admin/Sizes/Delete/@s.Id" style="display: inline;" onsubmit="return confirm('Smazat?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger">Smazat</button>
+                                    </form>
                                 </td>
                             </tr>
                         }

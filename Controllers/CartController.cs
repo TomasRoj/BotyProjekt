@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using BotyProjekt.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BotyProjekt.Controllers
 {
@@ -145,6 +146,21 @@ namespace BotyProjekt.Controllers
 
                 foreach (var item in cart)
                 {
+                    var variant = _context.ProductVariants.FirstOrDefault(v => v.Id == item.ProductId);
+                    
+                    if (variant != null)
+                    {
+                        // Odečet stock
+                        if (variant.StockQuantity >= item.Quantity)
+                        {
+                            variant.StockQuantity -= item.Quantity;
+                        }
+                        else
+                        {
+                            throw new Exception($"Nedostatek skladového množství pro variantu: {variant.Id}");
+                        }
+                    }
+
                     var orderItem = new OrderItem
                     {
                         OrderId = order.Id,
