@@ -1,0 +1,189 @@
+﻿@model BotyProjekt.Admin.Models.AdminViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <title>Administrace</title>
+    <style>
+        body { font-family: sans-serif; display: flex; margin: 0; min-height: 100vh; background: #f4f4f4; }
+
+        /* Sidebar Menu */
+        .sidebar { width: 250px; background: #333; color: white; padding-top: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { text-align: center; font-size: 1.2rem; margin-bottom: 20px; }
+
+        /* Odkazy v menu fungují jako tlačítka záložek */
+        .menu-link {
+            display: block; padding: 15px 20px; color: #aaa; text-decoration: none; border-bottom: 1px solid #444;
+        }
+        .menu-link:hover { background: #444; color: white; }
+
+        /* Aktivní záložka je zvýrazněna díky C# logice */
+        .menu-link.active { background: #007bff; color: white; font-weight: bold; }
+
+        .logout { margin-top: auto; background: #c0392b; color: white; text-align: center; }
+
+        /* Obsah */
+        .content { flex: 1; padding: 30px; }
+
+        /* Styly pro tabulky a formuláře */
+        .card { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #eee; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+
+        .btn { padding: 8px 15px; border: none; cursor: pointer; text-decoration: none; color: white; border-radius: 3px; display: inline-block; font-size: 14px; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Boty.cz Admin</h2>
+
+        <a href="?section=orders" class="menu-link @(Model.ActiveSection == "orders" ? "active" : "")">Objednávky</a>
+        <a href="?section=products" class="menu-link @(Model.ActiveSection == "products" ? "active" : "")">Produkty</a>
+        <a href="?section=categories" class="menu-link @(Model.ActiveSection == "categories" ? "active" : "")">Kategorie</a>
+
+        <a href="/Account/Logout" class="menu-link logout">Odhlásit se</a>
+    </div>
+
+    <div class="content">
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-success">@ViewBag.Message</div>
+        }
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-error">@ViewBag.Error</div>
+        }
+
+        @if (Model.ActiveSection == "orders")
+        {
+            <h1>Přehled objednávek</h1>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Datum</th><th>Zákazník</th><th>Cena</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in Model.Orders)
+                        {
+                            <tr>
+                                <td>@o.Id</td>
+                                <td>@o.OrderDate</td>
+                                <td>@o.CustomerName</td>
+                                <td>@o.TotalPrice Kč</td> 
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!Model.Orders.Any())
+                {
+                    <p>Žádné objednávky.</p>
+                }
+            </div>
+        }
+
+        @if (Model.ActiveSection == "products")
+        {
+            <h1>Správa Produktů</h1>
+
+            <div class="card" style="background: #eef;">
+                <h3>Nový produkt</h3>
+                <form asp-area="Admin" asp-controller="Products" asp-action="Create" method="post">
+                    <div class="form-group">
+                        <label>Název</label>
+                        <input name="Name" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Cena</label>
+                        <input name="BasePrice" type="number" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Kategorie</label>
+                        <select name="CategoryId" asp-items="ViewBag.CategoriesList">
+                            @foreach (var c in Model.Categories)
+                            {
+                                <option value="@c.Id"> @(c.Name)</option>
+                            }
+                            <option value="">-- Vyberte kategorii --</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">Uložit produkt</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr><th>Název</th><th>Kategorie</th><th>Cena</th><th>Akce</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Products)
+                        {
+                            <tr>
+                                <td>@p.Name</td>
+                                <td>@(p.Category?.Name ?? "-")</td>
+                                <td>@p.BasePrice</td>
+                                <td>
+                                    <a href="@Url.Action("Delete", "Products", new { area = "Admin", id = p.Id })" class="btn btn-danger" onclick="return confirm('Opravdu?')">Smazat</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.ActiveSection == "categories")
+        {
+            <h1>Správa Kategorií</h1>
+
+            <div class="card" style="background: #eef; max-width: 500px;">
+                <h3>Nová kategorie</h3>
+                <form asp-area="Admin" asp-controller="Categories" asp-action="Create" method="post">
+                    <div class="form-group">
+                        <label>Název kategorie</label>
+                        <input name="Name" required />
+                    </div>
+                    <button type="submit" class="btn btn-success">Přidat</button>
+                </form>
+            </div>
+
+            <div class="card" style="max-width: 600px;">
+                <table>
+                    <thead><tr><th>ID</th><th>Název</th><th>Akce</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <tr>
+                                <td>@c.Id</td>
+                                <td>@c.Name</td>
+                                <td>
+                                    <a href="@Url.Action("Delete", "Categories", new { area = "Admin", id = c.Id })" class="btn btn-danger" onclick="return confirm('Smazat?')">Smazat</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
+
+</body>
+</html>

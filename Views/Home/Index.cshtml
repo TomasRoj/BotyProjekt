@@ -9,7 +9,7 @@
         <div class="hero-text">
             <span class="subtitle">NOVÁ DÍVČÍ KOLEKCE<br>ŠETRNÁ K DĚTSKÝM NOHÁM</span>
             <h1>NEJEN DO MĚSTA,<br>ALE I DO PŘÍRODY</h1>
-            <a href="#" class="btn-red">zobrazit produkty</a>
+            <a asp-controller="Product" asp-action="Index" class="btn-red">zobrazit produkty</a>
         </div>
         <div class="slider-dots">
             <span class="dot active"></span>
@@ -20,17 +20,17 @@
 </section>
 
 <section class="categories container">
-    <a href="#" class="cat-box modra">
+    <a asp-controller="Product" asp-action="Index" asp-route-categoryId="1" class="cat-box modra">
         <div class="text">
             <h2>KLUČIČÍ<br>BOTY</h2>
         </div>
     </a>
-    <a href="#" class="cat-box cervena">
+    <a asp-controller="Product" asp-action="Index" asp-route-categoryId="2" class="cat-box cervena">
         <div class="text">
             <h2>DÍVČÍ BOTY</h2>
         </div>
     </a>
-    <a href="#" class="cat-box seda">
+    <a class="cat-box seda">
         <div class="text">
             <h2>JAK SPRÁVNĚ<br>VYBRAT?</h2>
         </div>
@@ -81,15 +81,15 @@
 </section>
 
 <section class="services container">
-    <a href="#" class="service-box">
+    <a class="service-box">
         <div class="icon-circle"><img alt="icon" src="obrazky/Group 195.svg" height="35px" width="35px"></i></div>
         <span>VŠE MÁME SKLADEM</span>
     </a>
-    <a href="#" class="service-box">
+    <a class="service-box">
         <div class="icon-circle"><img alt="icon" src="obrazky/Group 196.svg" height="35px" width="35px"></i></div>
         <span>DOPRAVA ZDARMA</span>
     </a>
-    <a href="#" class="service-box hover-demo">
+    <a class="service-box hover-demo">
         <div class="icon-circle"><img alt="icon" src="obrazky/Group 293.svg" height="35px" width="35px"></i></div>
         <span>JAK MĚŘIT VELIKOSTI</span>
     </a>

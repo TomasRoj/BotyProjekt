@@ -14,7 +14,7 @@ namespace BotyProjekt.Models
         public string CustomerAddress { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalAmount { get; set; }
+        public decimal TotalPrice { get; set; }
 
     }
 }
