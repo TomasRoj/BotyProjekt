@@ -47,7 +47,7 @@ namespace BotyProjekt
             app.UseAuthorization();
 
             app.MapControllerRoute(
-                name: "areas",
+                name: "admin",
                 pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
             app.MapControllerRoute(

@@ -28,7 +28,7 @@
 <body>
 
     <div class="container">
-        <a href="@Url.Action("Index", "Dashboard", new { area = "Admin", section = "orders" })" class="btn btn-back">? Zpìt na objednávky</a>
+        <a href="@Url.Action("Index", "Dashboard", new { area = "Admin", section = "orders" })" class="btn btn-back">< Zpìt na objednávky</a>
 
         <h1>Detail Objednávky #@order?.Id</h1>
 
@@ -75,8 +75,8 @@
                             <td>@item.ProductVariant?.Color?.Name</td>
                             <td>@item.ProductVariant?.Size?.Name</td>
                             <td>@item.Quantity</td>
-                            <td>@item.UnitPrice.ToString("C0")</td>
-                            <td><strong>@(item.UnitPrice * item.Quantity).ToString("C0")</strong></td>
+                            <td>@item.UnitPrice</td>
+                            <td><strong>@(item.UnitPrice * item.Quantity)</strong></td>
                         </tr>
                     }
                 </tbody>

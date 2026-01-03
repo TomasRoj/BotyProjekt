@@ -24,7 +24,6 @@ namespace BotyProjekt.Admin.Controllers
             {
                 if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(hexCode))
                 {
-                    TempData["Error"] = "Název a barva jsou povinné.";
                     return RedirectToAction("Index", "Dashboard", new { section = "colors" });
                 }
 
@@ -36,8 +35,6 @@ namespace BotyProjekt.Admin.Controllers
 
                 _context.Colors.Add(color);
                 await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Barva byla úspìšnì pøidána.";
             }
             catch (Exception)
             {
@@ -59,20 +56,16 @@ namespace BotyProjekt.Admin.Controllers
 
                 if (color == null)
                 {
-                    TempData["Warning"] = "Barva nebyla nalezena.";
                     return RedirectToAction("Index", "Dashboard", new { section = "colors" });
                 }
 
                 if (color.Variants.Count > 0)
                 {
-                    TempData["Error"] = $"Nelze smazat barvu. Je používána v {color.Variants.Count} variantu(ch).";
                     return RedirectToAction("Index", "Dashboard", new { section = "colors" });
                 }
 
                 _context.Colors.Remove(color);
                 await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Barva byla úspìšnì smazána.";
             }
             catch (Exception)
             {

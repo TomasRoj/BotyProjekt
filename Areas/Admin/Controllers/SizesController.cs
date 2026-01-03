@@ -24,7 +24,6 @@ namespace BotyProjekt.Admin.Controllers
             {
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    TempData["Error"] = "Název velikosti je povinný.";
                     return RedirectToAction("Index", "Dashboard", new { section = "sizes" });
                 }
 
@@ -35,8 +34,6 @@ namespace BotyProjekt.Admin.Controllers
 
                 _context.Sizes.Add(size);
                 await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Velikost byla úspìšnì pøidána.";
             }
             catch (Exception)
             {
@@ -58,20 +55,16 @@ namespace BotyProjekt.Admin.Controllers
 
                 if (size == null)
                 {
-                    TempData["Warning"] = "Velikost nebyla nalezena.";
                     return RedirectToAction("Index", "Dashboard", new { section = "sizes" });
                 }
 
                 if (size.Variants.Count > 0)
                 {
-                    TempData["Error"] = $"Nelze smazat velikost. Je používána v {size.Variants.Count} variantu(ch).";
                     return RedirectToAction("Index", "Dashboard", new { section = "sizes" });
                 }
 
                 _context.Sizes.Remove(size);
                 await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Velikost byla úspìšnì smazána.";
             }
             catch (Exception)
             {

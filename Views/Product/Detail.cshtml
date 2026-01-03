@@ -89,7 +89,6 @@
                 <span class="detail-price">@minPrice.ToString("C0")</span>
             </div>
 
-            @* Formulář pro přidání do košíku (uloží do session přes Cart/Add) *@
             <form asp-controller="Cart" asp-action="Add" method="post" style="display:flex; gap:8px; align-items:center; margin-top:12px;">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="productId" value="@Model.Id" />
@@ -97,11 +96,15 @@
                 <input type="hidden" name="price" value="@minPrice" />
                 <input type="hidden" name="imageUrl" value="@(mainImage)" />
 
-                <input type="number" name="quantity" value="1" min="1"
-                       style="width:70px; padding:6px; border:1px solid #ccc; border-radius:4px;">
-                <button type="submit" class="add-to-cart-btn">
-                    <img src="~/obrazky/cart.png" style="filter: brightness(0) invert(1);" width="20" alt=""> Přidat do košíku
-                </button>
+                @if (Model.Variants.Sum(v => v.StockQuantity) > 0)
+                {
+
+                    <input type="number" name="quantity" value="1" min="1"
+                           style="width:70px; padding:6px; border:1px solid #ccc; border-radius:4px;">
+                    <button type="submit" class="add-to-cart-btn">
+                        <img src="~/obrazky/cart.png" style="filter: brightness(0) invert(1);" width="20" alt=""> Přidat do košíku
+                    </button>
+                }
             </form>
         </div>
     </div>

@@ -24,7 +24,6 @@ namespace BotyProjekt.Admin.Controllers
             {
                 if (string.IsNullOrWhiteSpace(newCategory.Name))
                 {
-                    TempData["Error"] = "Název kategorie je povinný.";
                     return RedirectToAction("Index", "Dashboard", new { section = "categories" });
                 }
 
@@ -33,11 +32,6 @@ namespace BotyProjekt.Admin.Controllers
                 _context.Categories.Add(newCategory);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Kategorie byla úspěšně vytvořena.";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["Error"] = "Chyba při ukládání kategorie do databáze.";
             }
             catch (Exception)
             {
@@ -58,36 +52,24 @@ namespace BotyProjekt.Admin.Controllers
 
                 if (category == null)
                 {
-                    TempData["Warning"] = "Kategorie nebyla nalezena.";
                     return RedirectToAction("Index", "Dashboard", new { section = "categories" });
                 }
 
-                // Kontrola, zda kategorie obsahuje produkty
                 if (category.Products.Count > 0)
                 {
-                    TempData["Error"] = $"Nelze smazat kategorii '{category.Name}'. Obsahuje {category.Products.Count} produkt(ů). Nejprve přesuň nebo smaž produkty.";
                     return RedirectToAction("Index", "Dashboard", new { section = "categories" });
                 }
-
-                // Smaž podkategorie (pokud mají samy sebe jako rodiče)
                 if (category.SubCategories.Count > 0)
                 {
-                    // Nastav parentId na null pro všechny podkategorie
                     foreach (var subCategory in category.SubCategories)
                     {
                         subCategory.ParentId = null;
                     }
                 }
 
-                // Smaž samotnou kategorii
                 _context.Categories.Remove(category);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Kategorie byla úspěšně smazána.";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["Error"] = "Chyba při mazání kategorie z databáze.";
             }
             catch (Exception)
             {
